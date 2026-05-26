@@ -224,6 +224,12 @@ func TestBdCmd_Chaining(t *testing.T) {
 	if bdc.WithAutoCommit() != bdc {
 		t.Error("WithAutoCommit() should return receiver for chaining")
 	}
+	if bdc.AllowStale() != bdc {
+		t.Error("AllowStale() should return receiver for chaining")
+	}
+	if !bdc.allowStale {
+		t.Error("AllowStale() should mark stale-read compatibility as requested")
+	}
 	if bdc.WithGTRoot("/test") != bdc {
 		t.Error("WithGTRoot() should return receiver for chaining")
 	}

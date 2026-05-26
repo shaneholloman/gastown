@@ -290,7 +290,8 @@ func burnExistingMolecules(molecules []string, beadID, townRoot string) error {
 // StripBeadsDir prevents inherited BEADS_DIR from overriding the resolved
 // directory, which caused rig-prefixed beads to fail (GH#2126).
 func verifyBeadExists(beadID string) error {
-	out, err := BdCmd("show", beadID, "--json", "--allow-stale").
+	out, err := BdCmd("show", beadID, "--json").
+		AllowStale().
 		Dir(resolveBeadDir(beadID)).
 		StripBeadsDir().
 		Stderr(io.Discard).
@@ -325,7 +326,8 @@ func verifyBeadExistsInTargetRigDatabase(beadID, targetRig, townRoot string) err
 	}
 	targetBeadsDir := filepath.Join(targetRigDir, ".beads")
 
-	out, err := BdCmd("--db", targetBeadsDir, "show", beadID, "--json", "--allow-stale").
+	out, err := BdCmd("--db", targetBeadsDir, "show", beadID, "--json").
+		AllowStale().
 		Dir(targetRigDir).
 		StripBeadsDir().
 		Stderr(io.Discard).
@@ -348,7 +350,8 @@ func verifyBeadExistsInTargetRigDatabase(beadID, targetRig, townRoot string) err
 // getBeadInfo returns status and assignee for a bead.
 // Resolves the rig directory from the bead's prefix for correct dolt access.
 func getBeadInfo(beadID string) (*beadInfo, error) {
-	out, err := BdCmd("show", beadID, "--json", "--allow-stale").
+	out, err := BdCmd("show", beadID, "--json").
+		AllowStale().
 		Dir(resolveBeadDir(beadID)).
 		StripBeadsDir().
 		Stderr(io.Discard).
@@ -426,7 +429,8 @@ func storeFieldsInBead(beadID string, updates beadFieldUpdates) error {
 	issue := &beads.Issue{}
 	if logPath == "" {
 		// Read the bead once
-		out, err := BdCmd("show", beadID, "--json", "--allow-stale").
+		out, err := BdCmd("show", beadID, "--json").
+			AllowStale().
 			Dir(resolveBeadDir(beadID)).
 			StripBeadsDir().
 			Stderr(io.Discard).

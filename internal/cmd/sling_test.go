@@ -1964,7 +1964,8 @@ exit /b 1
 	t.Setenv("BD_LOG", logPath)
 	t.Setenv("PATH", binDir+string(os.PathListSeparator)+os.Getenv("PATH"))
 
-	out, err := BdCmd("show", "gt-rca-epic-routing.3", "--json", "--allow-stale").
+	out, err := BdCmd("show", "gt-rca-epic-routing.3", "--json").
+		AllowStale().
 		Dir(townRoot).
 		Output()
 	if err != nil {
