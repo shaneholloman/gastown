@@ -46,24 +46,17 @@ Examples:
   gt estop -r "closing laptop"          # Freeze with reason
   gt estop --rig gastown                # Freeze only gastown
   gt estop --rig beads -r "maintenance" # Freeze beads rig`,
-	// NoArgs is critical: without it, a stray positional arg (e.g. the
-	// intuitive-but-wrong `gt estop status`) is silently ignored and the
-	// bare command FIRES an emergency stop. That footgun caused a 14h town
-	// wedge — agents polling estop state via `gt estop status` re-froze the
-	// town on every check. Use `gt estop status` (the subcommand below) or
-	// `gt status` to CHECK; `gt thaw` to clear.
+	// Reject stray operands so `gt estop status` cannot fall through to runEstop.
 	Args: cobra.NoArgs,
 	RunE: runEstop,
 }
 
-// estopStatusCmd reports E-stop state WITHOUT firing one. This is the safe,
-// intuitive `gt estop status` that previously fell through to runEstop.
 var estopStatusCmd = &cobra.Command{
-	Use:     "status",
-	Short:   "Show emergency-stop state (read-only; does NOT freeze)",
-	Long:    "Report whether a town-wide or per-rig E-stop is active. Read-only — this never freezes the town. To clear an E-stop, use 'gt thaw'.",
-	Args:    cobra.NoArgs,
-	RunE:    runEstopStatus,
+	Use:   "status",
+	Short: "Show emergency-stop state without freezing agents",
+	Long:  "Report whether a town-wide or per-rig E-stop is active. This is read-only and never freezes agents. To clear an E-stop, use 'gt thaw'.",
+	Args:  cobra.NoArgs,
+	RunE:  runEstopStatus,
 }
 
 func runEstopStatus(cmd *cobra.Command, args []string) error {
@@ -73,15 +66,15 @@ func runEstopStatus(cmd *cobra.Command, args []string) error {
 	}
 	if !estop.IsActive(townRoot) {
 		entries, _ := filepath.Glob(filepath.Join(townRoot, "ESTOP.*"))
-		// ESTOP-LOOP-HANDOFF.md and similar are not real per-rig sentinels.
-		realRig := false
-		for _, e := range entries {
-			if estop.ReadRig(townRoot, strings.TrimPrefix(filepath.Base(e), "ESTOP.")) != nil {
-				realRig = true
+		hasRigEstop := false
+		for _, entry := range entries {
+			rigName := strings.TrimPrefix(filepath.Base(entry), "ESTOP.")
+			if estop.ReadRig(townRoot, rigName) != nil {
+				hasRigEstop = true
 				break
 			}
 		}
-		if !realRig {
+		if !hasRigEstop {
 			fmt.Println("No E-stop active.")
 			return nil
 		}
